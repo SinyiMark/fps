@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4084304313147066}
   m_Layer: 8
   m_Name: FirePoint
-  m_TagString: Untagged
+  m_TagString: FirePoint
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -254,6 +254,7 @@ MonoBehaviour:
   muzzleFlash: {fileID: 198750072049946710}
   hitEffectPrefab: {fileID: 1499078508436786, guid: dc1d39327a245954c8bd731e95a0297d,
     type: 2}
+  FirePoint: {fileID: 1009381010590050}
 --- !u!198 &198750072049946710
 ParticleSystem:
   m_ObjectHideFlags: 1

@@ -2,6 +2,7 @@
 using UnityEngine.Networking;
 
 [RequireComponent(typeof(WeaponManager))]
+[RequireComponent(typeof(PlayerAudioManager))]
 public class PlayerShoot : NetworkBehaviour {
 
     private const string playerTag = "Player";
@@ -9,12 +10,15 @@ public class PlayerShoot : NetworkBehaviour {
     private PlayerWeapon currentWeapon;
     private WeaponManager weaponManager;
 
+    private PlayerAudioManager audioManager;
+
     public Camera cam;
     public LayerMask mask;
 
 	void Start ()
     {
         weaponManager = GetComponent<WeaponManager>();
+        audioManager = GetComponent<PlayerAudioManager>();
 	}
 	
 	void Update ()
@@ -53,6 +57,7 @@ public class PlayerShoot : NetworkBehaviour {
     [ClientRpc]
     void RpcDoShootEffect()
     {
+        audioManager.ShootEffect.Play();
         weaponManager.GetCurrentGraphics().muzzleFlash.Play();
     }
 
@@ -65,8 +70,11 @@ public class PlayerShoot : NetworkBehaviour {
     [ClientRpc]
     void RpcDoHitEffect(Vector3 _pos, Vector3 _normal)
     {
-        GameObject _hitEffect = (GameObject)Instantiate(weaponManager.GetCurrentGraphics().hitEffectPrefab, _pos, Quaternion.LookRotation(_normal));
-        Destroy(_hitEffect, 1f);
+        GameObject firepoint = weaponManager.GetCurrentGraphics().FirePoint;
+        Instantiate(weaponManager.BulletPrefab, firepoint.transform.position, cam.transform.rotation);
+        //GameObject _hitEffect = (GameObject)Instantiate(weaponManager.GetCurrentGraphics().hitEffectPrefab, _pos, Quaternion.LookRotation(_normal));
+        //Destroy(_hitEffect, 1f);
+
     }
 
     [Client]
@@ -76,8 +84,6 @@ public class PlayerShoot : NetworkBehaviour {
         {
             return;
         }
-
-        FindObjectOfType<MyAudioManager>().Play("Shoot");
 
         CmdShoot();
 

@@ -9,6 +9,10 @@ public class WeaponManager : NetworkBehaviour {
     [SerializeField]
     private Transform weaponHolder;
 
+    public GameObject BulletPrefab;
+
+    public GameObject Firepoint;
+
     [SerializeField]
     private PlayerWeapon primaryWeapon;
 

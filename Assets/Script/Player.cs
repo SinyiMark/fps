@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 using System.Collections;
 
 [RequireComponent(typeof(PlayerSetup))]
+[RequireComponent(typeof(PlayerAudioManager))]
 public class Player : NetworkBehaviour {
 
     [SerializeField]
@@ -17,6 +18,8 @@ public class Player : NetworkBehaviour {
         get { return _isDead; }
         protected set { _isDead = value; }
     }
+
+    private PlayerAudioManager audioManager;
 
     [SerializeField]
     private GameObject playerGraphics;
@@ -76,6 +79,11 @@ public class Player : NetworkBehaviour {
         Cursor.visible = false;
 
         SetDefault();
+    }
+
+    private void Start()
+    {
+        audioManager = GetComponent<PlayerAudioManager>();
     }
 
 
@@ -152,7 +160,8 @@ public class Player : NetworkBehaviour {
 
     private void Die()
     {
-        FindObjectOfType<MyAudioManager>().Play("PlayerDeath");
+        RpcPlayDeathEffect();
+
         IsDead = true;
         for (int i = 0; i < disableOnDeath.Length; i++)
         {
@@ -174,6 +183,7 @@ public class Player : NetworkBehaviour {
 
         if (isLocalPlayer)
         {
+            audioManager = GetComponent<PlayerAudioManager>();
             GameManager.insantce.SetSceneCamraActive(true);
             GetComponent<PlayerSetup>().playerUIInstance.SetActive(false);
         }
@@ -181,6 +191,13 @@ public class Player : NetworkBehaviour {
         Debug.Log(transform.name + " is DEAD!");
         StartCoroutine(Respawn());
     }
+
+    [ClientRpc]
+    private void RpcPlayDeathEffect()
+    {
+        audioManager.DeathEffect.Play();
+    }
+
 
      private IEnumerator Respawn()
     {

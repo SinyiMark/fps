@@ -2,7 +2,7 @@
 using System;
 using UnityEngine.Audio;
 
-public class MyAudioManager : MonoBehaviour {
+public class AudioManager : MonoBehaviour {
 
     public Sound[] sounds;
 
@@ -22,7 +22,12 @@ public class MyAudioManager : MonoBehaviour {
         Sound s = Array.Find(sounds, sound => sound.name == name);
         if (s != null)
         {
+            Debug.Log("yes");
             s.source.Play();
+        }
+        else
+        {
+            Debug.Log("nooo");
         }
     }
 }
