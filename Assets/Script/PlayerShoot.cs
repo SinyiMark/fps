@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using TMPro;
+using UnityEngine;
 using UnityEngine.Networking;
 
 [RequireComponent(typeof(WeaponManager))]
@@ -7,6 +10,8 @@ public class PlayerShoot : NetworkBehaviour {
 
     private const string playerTag = "Player";
 
+    private int KillCount;
+
     private PlayerWeapon currentWeapon;
     private WeaponManager weaponManager;
 
@@ -14,12 +19,15 @@ public class PlayerShoot : NetworkBehaviour {
 
     public Camera cam;
     public LayerMask mask;
+    private GameObject playerUIInstance;
 
-	void Start ()
+    void Start ()
     {
         weaponManager = GetComponent<WeaponManager>();
         audioManager = GetComponent<PlayerAudioManager>();
-	}
+        playerUIInstance = GetComponent<PlayerSetup>().playerUIInstance;
+        CancelInvoke("Shoot");
+    }
 	
 	void Update ()
     {
@@ -46,8 +54,24 @@ public class PlayerShoot : NetworkBehaviour {
                 CancelInvoke("Shoot");
             }
         }
+        if (isLocalPlayer)
+        {
+            TMP_Text KillCountText = playerUIInstance.GetComponent<PlayerUi>().KillCountText;
+
+            if (KillCountText != null)
+            {
+                KillCountText.text = "Kills: " + KillCount;
+            }
+        }
+        
 
     }
+
+    public void OnDisable()
+    {
+        CancelInvoke("Shoot");
+    } 
+
     [Command]
     void CmdShoot()
     {
@@ -70,10 +94,8 @@ public class PlayerShoot : NetworkBehaviour {
     [ClientRpc]
     void RpcDoHitEffect(Vector3 _pos, Vector3 _normal)
     {
-        GameObject firepoint = weaponManager.GetCurrentGraphics().FirePoint;
-        Instantiate(weaponManager.BulletPrefab, firepoint.transform.position, cam.transform.rotation);
-        //GameObject _hitEffect = (GameObject)Instantiate(weaponManager.GetCurrentGraphics().hitEffectPrefab, _pos, Quaternion.LookRotation(_normal));
-        //Destroy(_hitEffect, 1f);
+        GameObject _hitEffect = (GameObject)Instantiate(weaponManager.GetCurrentGraphics().hitEffectPrefab, _pos, Quaternion.LookRotation(_normal));
+        Destroy(_hitEffect, 1f);
 
     }
 
@@ -92,16 +114,35 @@ public class PlayerShoot : NetworkBehaviour {
         {
             if (_hit.collider.tag.Contains(playerTag) && _hit.collider.transform.name != cam.transform.parent.name)
             {
-                CmdPlayerShot(_hit.collider.name, currentWeapon.damage);
+                ShowHitMark();
+                CmdPlayerShot(_hit.collider.name, currentWeapon.damage, _hit.point);
             }
 
             CmdOnHit(_hit.point, _hit.normal);
         }
     }
+
+    private void ShowHitMark()
+    {
+        StopCoroutine(HideHitMark());
+        GetComponent<PlayerSetup>().playerUIInstance.GetComponent<PlayerUi>().HitMark.gameObject.SetActive(true);
+        StartCoroutine(HideHitMark());
+    }
+
+     IEnumerator HideHitMark()
+    {
+        yield return new WaitForSeconds(0.3f);
+        GetComponent<PlayerSetup>().playerUIInstance.GetComponent<PlayerUi>().HitMark.gameObject.SetActive(false);
+    }
+
     [Command]
-    void CmdPlayerShot(string playerId, int damage)
+    void CmdPlayerShot(string playerId, int damage, Vector3 hitPoint)
     {
         Player _player = GameManager.GetPlayer(playerId);
-        _player.RpcTakeDamage(damage);
+        if (_player.WillDeath(damage))
+        {
+            KillCount++;
+        }
+        _player.RpcTakeDamage(damage, hitPoint);
     }
 }

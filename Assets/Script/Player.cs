@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
+using TMPro;
+using System;
 
 [RequireComponent(typeof(PlayerSetup))]
 [RequireComponent(typeof(PlayerAudioManager))]
@@ -18,6 +20,8 @@ public class Player : NetworkBehaviour {
         get { return _isDead; }
         protected set { _isDead = value; }
     }
+
+    private GameObject playerUIInstance;
 
     private PlayerAudioManager audioManager;
 
@@ -39,10 +43,21 @@ public class Player : NetworkBehaviour {
     private GameObject[] disableGameObjectOnDeath;
 
     [SerializeField]
+    private Rigidbody rigidbody;
+
+    [SerializeField]
+    private Collider[] colliders;
+
+    #region Effects
+    [SerializeField]
     private GameObject deathEffect;
 
     [SerializeField]
     private GameObject spawnEffect;
+
+    [SerializeField]
+    private Canvas UIDamageEffect;
+    #endregion 
 
     private bool cursorLock = true;
 
@@ -83,40 +98,91 @@ public class Player : NetworkBehaviour {
 
     private void Start()
     {
+        playerUIInstance = GetComponent<PlayerSetup>().playerUIInstance;
         audioManager = GetComponent<PlayerAudioManager>();
     }
 
 
-    //Test: kill myself
     private void Update()
     {
+        #region cursor controll
+        // show and unlock the cursor
         if (cursorLock == true && Input.GetKeyDown(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             cursorLock = false;
         }
+        // hide and lock teh cursor
         else if (cursorLock == false && Input.GetKeyDown(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             cursorLock = true;
         }
+        #endregion
 
-
-            if (!isLocalPlayer)
+        if (isLocalPlayer)
         {
-            return;
+            TMP_Text HpText = playerUIInstance.GetComponent<PlayerUi>().HPText;
+
+            if (HpText != null)
+            {
+                HpText.text = "Hp: " + currentHp;
+            }
+
+            
+
+
         }
-        if (Input.GetKeyDown(KeyCode.K))
+        
+        
+
+        //Test: suicide !!!!!!
+        if (Input.GetKeyDown(KeyCode.K) && isLocalPlayer)
         {
-            RpcTakeDamage(300);
+            RpcTakeDamage(20, playerGraphics.transform.position);
         }
     }
 
-    [ClientRpc]
-    internal void RpcTakeDamage(int damage)
+    internal bool WillDeath(int damage)
     {
+        if (currentHp - damage <= 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    #region Ui Damage Effect
+    private void UIDamageEffectDisplay()
+    {
+        StopCoroutine(HideUIDamageEffect());
+        UIDamageEffect.gameObject.SetActive(true);
+        StartCoroutine(HideUIDamageEffect());
+    }
+
+    IEnumerator HideUIDamageEffect()
+    {
+        yield return new WaitForSeconds(1);
+
+        UIDamageEffect.gameObject.SetActive(false);
+        
+
+    }
+    #endregion
+
+    [ClientRpc]
+    internal void RpcTakeDamage(int damage, Vector3 hitPoint)
+    {
+        //Hit Indicator !!!!!
+        //Vector3 targetDir = playerGraphics.transform.position - hitPoint;
+        //float angle = Vector3.Angle(targetDir, transform.forward);
+        //Debug.Log(angle);
+
         if (IsDead) return;
         currentHp = currentHp - damage;
         Debug.Log(transform.name + " got " + damage + " damge" );
@@ -124,6 +190,10 @@ public class Player : NetworkBehaviour {
         if (currentHp <= 0)
         {
             Die();
+        }
+        else
+        {
+            UIDamageEffectDisplay();
         }
     }
 
@@ -142,11 +212,13 @@ public class Player : NetworkBehaviour {
             disableGameObjectOnDeath[i].SetActive(true);
         }
 
-        Collider _col = GetComponent<Collider>();
-        if (_col != null)
+        rigidbody.isKinematic = false;
+
+        foreach (var col in colliders)
         {
-            _col.enabled = true;
+            col.enabled = true;
         }
+
 
         if (isLocalPlayer)
         {
@@ -172,10 +244,11 @@ public class Player : NetworkBehaviour {
             disableGameObjectOnDeath[i].SetActive(false);
         }
 
-        Collider _col = GetComponent<Collider>();
-        if (_col != null)
+        rigidbody.isKinematic = true;
+
+        foreach (var col in colliders)
         {
-            _col.enabled = false;
+            col.enabled = false;
         }
 
         GameObject _deathEffect = Instantiate(deathEffect, transform.position, Quaternion.identity);
@@ -185,7 +258,7 @@ public class Player : NetworkBehaviour {
         {
             audioManager = GetComponent<PlayerAudioManager>();
             GameManager.insantce.SetSceneCamraActive(true);
-            GetComponent<PlayerSetup>().playerUIInstance.SetActive(false);
+            playerUIInstance.SetActive(false);
         }
 
         Debug.Log(transform.name + " is DEAD!");
@@ -198,8 +271,7 @@ public class Player : NetworkBehaviour {
         audioManager.DeathEffect.Play();
     }
 
-
-     private IEnumerator Respawn()
+    private IEnumerator Respawn()
     {
         yield return new WaitForSeconds(GameManager.insantce.matchSettings.RespawnTime);
 

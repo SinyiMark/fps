@@ -11,10 +11,10 @@ public class WeaponManager : NetworkBehaviour {
 
     public GameObject BulletPrefab;
 
-    public GameObject Firepoint;
-
     [SerializeField]
     private PlayerWeapon primaryWeapon;
+
+    
 
     private PlayerWeapon currentWeapon;
     private WeaponGraphics currentGraphics;

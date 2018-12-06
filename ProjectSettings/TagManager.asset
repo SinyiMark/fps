@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - FirePoint
+  - Bullet
+  - Ground
   layers:
   - Default
   - TransparentFX

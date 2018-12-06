@@ -7,8 +7,11 @@ public class Bullet : NetworkBehaviour
     public Rigidbody rigidbody;
     public Collider collider;
     public GameObject hitEffectPrefab;
+    public int damage;
 
     void Start () {
+        
+
         rigidbody.AddForce(rigidbody.transform.forward*10000);
 	}
 	

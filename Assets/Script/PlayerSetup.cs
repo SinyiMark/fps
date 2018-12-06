@@ -10,7 +10,6 @@ public class PlayerSetup : NetworkBehaviour {
     [SerializeField]
     GameObject playerUIPrefab;
 
-    [HideInInspector]
     public GameObject playerUIInstance;
 
 	void Start ()

@@ -64,7 +64,7 @@ MonoBehaviour:
   m_PlayerPrefab: {fileID: 1629688936289766, guid: 2f7d0353d168b9748a817899119d7e71,
     type: 2}
   m_AutoCreatePlayer: 1
-  m_PlayerSpawnMethod: 1
+  m_PlayerSpawnMethod: 0
   m_OfflineScene: Lobby
   m_OnlineScene: Main
   m_SpawnPrefabs: []
@@ -137,4 +137,4 @@ MonoBehaviour:
   manager: {fileID: 0}
   showGUI: 1
   offsetX: 0
-  offsetY: 0
+  offsetY: 20

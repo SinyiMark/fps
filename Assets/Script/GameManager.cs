@@ -77,4 +77,11 @@ public class GameManager : MonoBehaviour {
 
     #endregion
 
+    public void GameWin(string playerId)
+    {
+        var winner = GetPlayer(playerId);
+
+
+    }
+
 }
