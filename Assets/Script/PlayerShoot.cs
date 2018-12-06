@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 public class PlayerShoot : NetworkBehaviour {
 
     private const string playerTag = "Player";
-
+    [SyncVar]
     private int KillCount;
 
     private PlayerWeapon currentWeapon;
@@ -116,6 +116,11 @@ public class PlayerShoot : NetworkBehaviour {
             {
                 ShowHitMark();
                 CmdPlayerShot(_hit.collider.name, currentWeapon.damage, _hit.point);
+                Player _player = GameManager.GetPlayer(_hit.collider.name);
+                if (_player.WillDeath(currentWeapon.damage))
+                {
+                    KillCount++;
+                }
             }
 
             CmdOnHit(_hit.point, _hit.normal);
@@ -139,10 +144,6 @@ public class PlayerShoot : NetworkBehaviour {
     void CmdPlayerShot(string playerId, int damage, Vector3 hitPoint)
     {
         Player _player = GameManager.GetPlayer(playerId);
-        if (_player.WillDeath(damage))
-        {
-            KillCount++;
-        }
         _player.RpcTakeDamage(damage, hitPoint);
     }
 }

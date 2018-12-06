@@ -130,10 +130,6 @@ public class Player : NetworkBehaviour {
             {
                 HpText.text = "Hp: " + currentHp;
             }
-
-            
-
-
         }
         
         
@@ -191,10 +187,10 @@ public class Player : NetworkBehaviour {
         {
             Die();
         }
-        else
-        {
-            UIDamageEffectDisplay();
-        }
+        //else
+        //{
+        //    UIDamageEffectDisplay();
+        //}
     }
 
     public void SetDefault()
