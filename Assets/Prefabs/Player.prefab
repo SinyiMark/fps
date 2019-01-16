@@ -625,7 +625,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!81 &81985257575891400
 AudioListener:
   m_ObjectHideFlags: 1
@@ -933,6 +933,10 @@ MonoBehaviour:
   mask:
     serializedVersion: 2
     m_Bits: 567
+  maxBurstlong: 0.05
+  burstlongIncrease: 0.005
+  _burtsLong: 0
+  canResetBurstLong: 1
 --- !u!114 &114271563972123682
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -983,6 +987,9 @@ MonoBehaviour:
   rotationSpeed: 3
   thrusterForce: 1000
   animator: {fileID: 95473474645926650}
+  rigidbody: {fileID: 54918475934404416}
+  DashColdown: 5
+  DashPower: 100
 --- !u!114 &114506000030306286
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1053,9 +1060,6 @@ MonoBehaviour:
   - {fileID: 136882650271712116}
   deathEffect: {fileID: 1165372205462534, guid: cb2c68f70d970e74182297ab246419c8,
     type: 2}
-  spawnEffect: {fileID: 1239691297194762, guid: 279ea9c74833cc045a20792e8cd41a72,
-    type: 2}
-  UIDamageEffect: {fileID: 223290346316487256}
 --- !u!114 &114782379490721696
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1077,6 +1081,7 @@ MonoBehaviour:
     range: 100
     graphics: {fileID: 1898730991068972, guid: 5a6217f0b9339ca44b520e219a3a583d, type: 2}
     fireRate: 6
+    recoil: 1
 --- !u!114 &114846642382519896
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1134,7 +1139,7 @@ SphereCollider:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1629688936289766}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 0cff3121e05e690468efb52eab708908, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -1146,7 +1151,7 @@ CapsuleCollider:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1629688936289766}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 0cff3121e05e690468efb52eab708908, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.26771003

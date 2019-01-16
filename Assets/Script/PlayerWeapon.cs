@@ -13,5 +13,6 @@ public class PlayerWeapon {
     public GameObject graphics;
 
     public float fireRate = 0f;
-  
+    public float recoil = 1;
+
 }

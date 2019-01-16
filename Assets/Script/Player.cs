@@ -51,18 +51,11 @@ public class Player : NetworkBehaviour {
     #region Effects
     [SerializeField]
     private GameObject deathEffect;
-
-    [SerializeField]
-    private GameObject spawnEffect;
-
-    [SerializeField]
-    private Canvas UIDamageEffect;
     #endregion 
-
-    private bool cursorLock = true;
 
     public void PlayerSetup ()
     {
+        
         CmdBroadCastNewPlayerSetup();
 	}
 
@@ -89,108 +82,11 @@ public class Player : NetworkBehaviour {
             Util.SetLayerRecursively(playerGraphics, LayerMask.NameToLayer("LocalPlayerGraphics"));
         }
 
-        //Lock cursor
+        //<<<<<<<< Lock cursor >>>>>>>>>>>
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
         SetDefault();
-    }
-
-    private void Start()
-    {
-        playerUIInstance = GetComponent<PlayerSetup>().playerUIInstance;
-        audioManager = GetComponent<PlayerAudioManager>();
-    }
-
-
-    private void Update()
-    {
-        #region cursor controll
-        // show and unlock the cursor
-        if (cursorLock == true && Input.GetKeyDown(KeyCode.Escape))
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            cursorLock = false;
-        }
-        // hide and lock teh cursor
-        else if (cursorLock == false && Input.GetKeyDown(KeyCode.Escape))
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            cursorLock = true;
-        }
-        #endregion
-
-        if (isLocalPlayer)
-        {
-            TMP_Text HpText = playerUIInstance.GetComponent<PlayerUi>().HPText;
-
-            if (HpText != null)
-            {
-                HpText.text = "Hp: " + currentHp;
-            }
-        }
-        
-        
-
-        //Test: suicide !!!!!!
-        if (Input.GetKeyDown(KeyCode.K) && isLocalPlayer)
-        {
-            RpcTakeDamage(20, playerGraphics.transform.position);
-        }
-    }
-
-    internal bool WillDeath(int damage)
-    {
-        if (currentHp - damage <= 0)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    #region Ui Damage Effect
-    private void UIDamageEffectDisplay()
-    {
-        StopCoroutine(HideUIDamageEffect());
-        UIDamageEffect.gameObject.SetActive(true);
-        StartCoroutine(HideUIDamageEffect());
-    }
-
-    IEnumerator HideUIDamageEffect()
-    {
-        yield return new WaitForSeconds(1);
-
-        UIDamageEffect.gameObject.SetActive(false);
-        
-
-    }
-    #endregion
-
-    [ClientRpc]
-    internal void RpcTakeDamage(int damage, Vector3 hitPoint)
-    {
-        //Hit Indicator !!!!!
-        //Vector3 targetDir = playerGraphics.transform.position - hitPoint;
-        //float angle = Vector3.Angle(targetDir, transform.forward);
-        //Debug.Log(angle);
-
-        if (IsDead) return;
-        currentHp = currentHp - damage;
-        Debug.Log(transform.name + " got " + damage + " damge" );
-
-        if (currentHp <= 0)
-        {
-            Die();
-        }
-        //else
-        //{
-        //    UIDamageEffectDisplay();
-        //}
     }
 
     public void SetDefault()
@@ -222,8 +118,92 @@ public class Player : NetworkBehaviour {
             GetComponent<PlayerSetup>().playerUIInstance.SetActive(true);
         }
 
-            GameObject _spawnEffect = Instantiate(spawnEffect, transform.position, Quaternion.identity);
-            Destroy(_spawnEffect, 3f);
+    }
+
+    private void Start()
+    {
+        playerUIInstance = GetComponent<PlayerSetup>().playerUIInstance;
+        audioManager = GetComponent<PlayerAudioManager>();
+        
+
+    }
+
+    private void Update()
+    {
+        #region cursor controll
+        // show and unlock the cursor
+        if (Cursor.lockState == CursorLockMode.Locked && PauseMenu.IsOn == true)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        // hide and lock teh cursor
+        else if (Cursor.lockState == CursorLockMode.None && PauseMenu.IsOn == false)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        #endregion
+
+        #region Hp Hud
+        if (isLocalPlayer)
+        {
+            TMP_Text HpText = playerUIInstance.GetComponent<PlayerUi>().HPText;
+
+            if (HpText != null)
+            {
+                HpText.text = "Hp: " + currentHp;
+            }
+        }
+        #endregion
+
+
+        //<<<<<<<<<<<<<<<< Test: Got damage !!!!!! >>>>>>>>>>>>>>>>>>>
+        if (Input.GetKeyDown(KeyCode.K) && isLocalPlayer)
+        {
+            RpcTakeDamage(20, playerGraphics.transform.position);
+        }
+    }
+
+    // <<<<<<<<<<< This check i kill the other player >>>>>>>>>>>
+    internal bool WillDeath(int damage)
+    {
+        if (currentHp - damage <= 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
+
+    [ClientRpc]
+    internal void RpcTakeDamage(int damage, Vector3 hitPoint)
+    {
+
+        if (IsDead) return;
+        currentHp = currentHp - damage;
+        Debug.Log(transform.name + " got " + damage + " damge  and HP: " + currentHp);
+
+        if (currentHp <= 0)
+        {
+            Die();
+        }
+        else
+        {
+            ShowUIDamageEffect();
+        }
+    }
+
+    private void ShowUIDamageEffect()
+    {
+        if (isLocalPlayer)
+        {
+            playerUIInstance.GetComponent<PlayerUi>().UIDamageEffectDisplay();
+        }
     }
 
     private void Die()
@@ -270,6 +250,11 @@ public class Player : NetworkBehaviour {
     private IEnumerator Respawn()
     {
         yield return new WaitForSeconds(GameManager.insantce.matchSettings.RespawnTime);
+
+        if (isLocalPlayer)
+        {
+            playerUIInstance.GetComponent<PlayerUi>().StopOnPlayerDie();
+        }
 
         Transform _spawnPoint = NetworkManager.singleton.GetStartPosition();
         transform.position = _spawnPoint.position;
